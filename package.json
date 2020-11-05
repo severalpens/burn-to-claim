@@ -1,0 +1,40 @@
+{
+  "name": "example-basic",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "test": "mocha",
+    "test2": "mocha --file  test/BasicToken.test.js",
+    "chkbal": "mocha ./test/checkBalance_test.js",
+    "btc": "mocha ./test/btcLocal_test.js",
+    "start": "node index",
+    "compile": "waffle",
+    "e2e": "node e2e.js",
+    "flatten": "npx waffle flatten"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^3.1.0",
+    "chai": "^4.2.0",
+    "cookie-parser": "~1.4.4",
+    "crypto": "^1.0.1",
+    "debug": "~2.6.9",
+    "ejs": "~2.6.1",
+    "ethereum-waffle": "^3.0.2",
+    "ethers": "4.0.47",
+    "express": "~4.16.1",
+    "fs-extra": "^9.0.1",
+    "http-errors": "~1.6.3",
+    "mocha": "^7.1.2",
+    "moment": "^2.27.0",
+    "mongodb": "^3.6.0",
+    "mongoose": "^5.9.28",
+    "morgan": "~1.9.1",
+    "solc": "^0.6.0",
+    "statman": "^1.8.1",
+    "winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "@nomiclabs/buidler": "^1.4.3"
+  }
+}
