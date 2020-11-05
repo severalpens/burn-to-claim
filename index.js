@@ -141,7 +141,7 @@ async function deploy() {
 
 async function deployContract(msgSender, artifact, network, args = []) {
   console.log('deploying:', { network, args });
-  const infura = new ethers.providers.InfuraProvider(network, 'abf62c2c62304ddeb3ccb2d6fb7a8b96');
+  const infura = new ethers.providers.InfuraProvider(network, process.env.INFURA);
   // const default = ethers.getDefaultProvider
   const ganache = new ethers.providers.JsonRpcProvider('http://127.0.0.1:7545');
   this.provider = network === "ganache" ? ganache : infura;
@@ -156,7 +156,7 @@ async function deployContract(msgSender, artifact, network, args = []) {
 
 
 async function getEthersBalance(network, account) {
-  const infura = new ethers.providers.InfuraProvider(network, 'abf62c2c62304ddeb3ccb2d6fb7a8b96');
+  const infura = new ethers.providers.InfuraProvider(network, process.env.INFURA);
   const ganache = new ethers.providers.JsonRpcProvider('http://127.0.0.1:7545');
   this.provider = network === "ganache" ? ganache : infura;
   const wallet = new ethers.Wallet(account.privateKey, provider);

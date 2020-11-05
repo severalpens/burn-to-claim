@@ -11,7 +11,7 @@ class Contract {
 		this.msgSender = msgSender;
 		this.contractSettings = contractSettings;
 		this.address = contractSettings.addresses[network];
-		const infura = new ethers.providers.InfuraProvider(network, 'abf62c2c62304ddeb3ccb2d6fb7a8b96');
+		const infura = new ethers.providers.InfuraProvider(network, process.env.INFURA);
 		const ganache = new ethers.providers.JsonRpcProvider('http://127.0.0.1:7545');
 		this.provider = network == "ganache" ? ganache : infura;
 		this.wallet = new ethers.Wallet(msgSender.privateKey, this.provider);

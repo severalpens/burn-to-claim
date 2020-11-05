@@ -1,4 +1,4 @@
-
+require('dotenv').config();
 const url = process.env.CN_STRING;
 const devUrl = process.env.LOCAL_CN_STRING;
 const mongoose = require('mongoose');

@@ -19,6 +19,7 @@
     "cookie-parser": "~1.4.4",
     "crypto": "^1.0.1",
     "debug": "~2.6.9",
+    "dotenv": "^8.2.0",
     "ejs": "~2.6.1",
     "ethereum-waffle": "^3.0.2",
     "ethers": "4.0.47",
