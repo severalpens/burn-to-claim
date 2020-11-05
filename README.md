@@ -5,7 +5,7 @@ This is a node.js console application running ethers.js. Refer to the relevant d
 
 Mongodb is used as the database. Follow their docs to install then create a .env file and paste in your connection string as follows:
 
-CN_STRING = mongodb+srv://<user>:<password>@<collection>.mongodb.net/<database>?retryWrites=true&w=majority
+CN_STRING = mongodb+srv://<user>:<password>@<project>.mongodb.net/<database>?retryWrites=true&w=majority
 
 
 run 'npm install' to install all local packages.
