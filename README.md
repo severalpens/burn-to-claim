@@ -41,4 +41,8 @@ Settings can be found in `utils/settings.json`. Some of the settings include:
 - **sendLogbookToDb**: If Mongodb is connected, set this to true
 - **tokenAmount**: The amount to transfer
 - **initialBalance**: On deployment, the intial amount for of tokens
+
+
+## Video Tutorial
+Available on [Youtube](https://youtu.be/VhIfeQ-fgJ0)
   
