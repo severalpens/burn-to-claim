@@ -1,11 +1,31 @@
 # burn-to-claim
-Inter-network ERC20 value transfer agent demo
+Demo of [burn-to-claim cross blockchain asset transfer protocol](https://zhehou.github.io/papers/burn_to_claim_cross_blockchain_asset_transfer_protocol.pdf)
 
-This is a node.js console application running ethers.js. Refer to the relevant documentation to install these.
+### Required Accounts
+- (infura.io)[https://infura.io/]
+- (Mongodb Atlas)[https://cloud.mongodb.com/]
+- 
+### Required Software / Global Installs
+- (Node.js)[https://nodejs.org/en/]
+- (npm)[https://www.npmjs.com/]
+- (Truffle)[https://www.trufflesuite.com/]
+- (Waffle)[https://ethereum-waffle.readthedocs.io/en/latest/index.html#]
+- (Mongodb)[https://docs.mongodb.com/manual/installation/]*
 
-Mongodb is used as the database. Follow their docs to install then create a .env file and paste in your connection string as follows:
+The app can be run without mongodb but only the latest log result will be retained.
 
-CN_STRING = mongodb+srv://<user>:<password>@<project>.mongodb.net/<database>?retryWrites=true&w=majority
+This is a node.js console application running ethers.js. (dotenv)[https://www.npmjs.com/package/dotenv] is used to store keys and connection strings.
+
+### To download:
+- Download via zip file / git clone / github desktop
+- create a file in same folder as 'package.json' called '.env'
+- Add the following lines to the .env file:
+- - CN_STRING = mongodb+srv://<user>:<password>@<project>.mongodb.net/<database>?retryWrites=true&w=majority
+- - INFURA = keyfrominfuraaccount
+
+
+
+
 
 
 run 'npm install' to install all local packages.
