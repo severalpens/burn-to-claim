@@ -3,6 +3,9 @@
  * Controller class that instantiates a contract via ethers.js
  */
 const fs = require('fs-extra');
+const statman = require('statman');
+const pidusage = require('pidusage');
+const si = require('systeminformation');
 const ethers = require("ethers");
 const TimeHelper = require('./TimeHelper');
 class Contract {
@@ -30,6 +33,17 @@ class Contract {
 		};
 	}
 
+	isValid(preTimeout, timeoutSeconds) {
+		let expired = this.timeoutTimer.read() >= timeoutSeconds;
+		if (preTimeout && !expired) {
+			return true;
+		}
+		if (!preTimeout && expired) {
+			return true;
+		}
+		return false;
+	}
+
 	async balanceOf(address) {
 		let balance = await this.ethersContract.balanceOf(address);
 		return parseInt(balance);
@@ -37,10 +51,10 @@ class Contract {
 
 	async balanceOfLog(account) {
 		let balance = await this.balanceOf(account.address);
-		return {network: this.network,contractAddress: this.address,accountAddress: account.address, accountName: account.name,balance};
+		return { network: this.network, contractAddress: this.address, accountAddress: account.address, accountName: account.name, balance };
 	}
 
-	async run(tx, stopwatch, logbook) {
+	async run(tx, stopwatch, logbook,c) {
 		let { method, args } = tx;
 		console.log(method);
 		let ethersTx = this.ethersContract[method];
@@ -51,34 +65,39 @@ class Contract {
 			logbook.signedTxs.push(signedTx);
 			await signedTx.wait().then(async (completedTx) => {
 				completedTx.gasUsed.int = parseInt(completedTx.gasUsed._hex);
-				completedTx.cumulativeGasUsed.int =  parseInt(completedTx.cumulativeGasUsed._hex);
-				let gasUsed = completedTx.cumulativeGasUsed.int;
-				this.gasUsed += gasUsed;
+				let gasUsed = completedTx.gasUsed.int;
+				completedTx.cumulativeGasUsed.int = parseInt(completedTx.cumulativeGasUsed._hex);
+				let cumulativeGasUsed = completedTx.cumulativeGasUsed.int;
 				delete completedTx.logsBloom;
 				logbook.completedTxs.push(completedTx);
-				logbook.summary.push({ method, gasUsed, split: Math.floor(stopwatch.read(0) / 1000) });
-				this.transactionId = method === 'exitTransaction' ? completedTx.events[completedTx.events.length - 1].args.transactionId : null;
+				let cpu = await pidusage(process.pid);
+				logbook.summary.push({c, transactionHash: completedTx.transactionHash, method, gasUsed, cumulativeGasUsed, split: Math.floor(stopwatch.read(0) / 1000),memory:cpu.memory });
+				// let sysInfo = await si.cpu();
+				this.events = completedTx.events;
+				logbook.cpuData.push(cpu);
 			})
-			.catch(async (completedTxError) => {
-				console.log('completedTx error');
-				logbook.completedTxErrors.push(completedTxError);
-				// throw completedTxError;
+				.catch(async (completedTxError) => {
+					console.log('completedTx error');
+					logbook.completedTxErrors.push(completedTxError);
+					logbook.hasErrors = true;
+					// throw completedTxError;
+				})
+				.finally(async () => {
+				});
+		})
+			.catch(async (signedTxError) => {
+				console.log('signedTx error');
+				logbook.signedTxErrors.push(signedTxError);
+				logbook.hasErrors = true;
+				// throw signedTxError;
+
 			})
 			.finally(async () => {
 			});
-		})
-		.catch(async (signedTxError) => {
-			console.log('signedTx error');
-			logbook.signedTxErrors.push(signedTxError);
-			// throw signedTxError;
-
-		})
-		.finally(async () => {
-		});
 		return this.result;
 	}
 
-	async writeToLogbook(logbook){
+	async writeToLogbook(logbook) {
 	}
 }
 

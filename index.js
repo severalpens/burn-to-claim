@@ -1,19 +1,21 @@
+require('dotenv').config()
 const fs = require('fs-extra');
 const statman = require('statman');
 const stopwatch = new statman.Stopwatch();
 const ethers = require('ethers');
 const ethersWrapper = require('./utils/ethersWrapper');
 const Contract = require('./utils/Contract');
-const Config = require('./utils/Config');
+const Transfer = require('./utils/Transfer');
 const crypto = require('./utils/cryptoWrapper');
 const tokenArtifact = require('./build/contracts/BasicToken.json');
 const agentArtifact = require('./build/contracts/BurnToClaim.json');
 const settings = require('./utils/settings.json');
 const LogbookModel = require('./utils/models/logbook');
 const TimeHelper = require('./utils/TimeHelper');
+const delay = require('delay');
+
 
 (async function () {
-  
   //setup a counter to use synchronous 'x of y' loop. TODO: refactor
   const iCounter = [];
   for (let i = 0; i < settings.iterations; i++) {
@@ -27,8 +29,12 @@ const TimeHelper = require('./utils/TimeHelper');
 
 
 
-  for (const i of iCounter) {
+  for (const c of iCounter) {
     const logbook = new LogbookModel();
+    logbook.c = c;
+    logbook.hasErrors = false;
+    logbook.senderNetwork = settings.senderNetwork;
+    logbook.recipientNetwork = settings.recipientNetwork;
     const instances = {};
     instances.burnAccount = ethersWrapper.genAccount();
     instances.hashPair = crypto.newSecretHashPair();
@@ -37,7 +43,7 @@ const TimeHelper = require('./utils/TimeHelper');
     instances.recipientToken = new Contract(settings.recipientNetwork, settings.sender, settings.token, tokenArtifact);
     instances.recipientAgent = new Contract(settings.recipientNetwork, settings.sender, settings.agent, agentArtifact);
     await instances.senderAgent.timer.init(settings.timeoutSeconds);
-    var config = new Config(settings, instances);
+    const transfer = new Transfer(settings, instances,logbook,c);
 
     logbook.preBalances.push(await getEthersBalance(settings.senderNetwork, settings.sender));
     logbook.preBalances.push(await getEthersBalance(settings.recipientNetwork, settings.sender));
@@ -50,53 +56,20 @@ const TimeHelper = require('./utils/TimeHelper');
     if (init) {
       console.log('pre-transfer setup (init) transactions:');
       stopwatch.start();
-      for (const tx of config.inits) {
-        let instance = instances[tx.instance];
-        await instance.run(tx, stopwatch, logbook);
-      }
+      await transfer.runInitMethods(stopwatch);
       stopwatch.reset();
-
       //Possible cause of errors in running subesquent sequence could be lag following deployment. Waiting 2 minutes before continuing.
-      console.log('sleeping for 120 seconds');
-      await TimeHelper.sleep(120); 
       init = false;
+      console.log('sleeping for 120 seconds');
+      await delay(120000);
     }
+    
 
 
-    console.log(`sequence iteration ${i}:`);
+    console.log(`sequence iteration ${c}:`);
     // await instances.senderAgent.timer.init(settings.timeoutSeconds);
     stopwatch.start();
-    var tx = config.txs[0];
-    let approve = instances[tx.instance];
-    await approve.run(tx, stopwatch, logbook);
-
-    tx = config.txs[1];
-    let exitTransaction = instances[tx.instance];
-    await exitTransaction.run(tx, stopwatch, logbook);
-
-    settings.transactionId = exitTransaction.transactionId;
-    config.seedTxs(settings, instances); //reseed config with new transactionId
-    console.log('transactionId:', settings.transactionId);
-
-    if (instances.senderAgent.timer.expired()) {
-      tx = config.txs[2];
-      let reclaimTransaction = instances[tx.instance];
-      await reclaimTransaction.run(tx, stopwatch, logbook);
-    }
-    else {
-      tx = config.txs[3];
-      let add = instances[tx.instance];
-      await add.run(tx, stopwatch, logbook);
-
-      tx = config.txs[4];
-      let entryTransaction = instances[tx.instance];
-      await entryTransaction.run(tx, stopwatch, logbook);
-
-      tx = config.txs[5];
-      let update = instances[tx.instance];
-      await update.run(tx, stopwatch, logbook);
-
-    }
+    await transfer.runTxs(stopwatch);
 
     logbook.postBalances.push(await getEthersBalance(settings.senderNetwork, settings.sender));
     logbook.postBalances.push(await getEthersBalance(settings.recipientNetwork, settings.sender));
@@ -107,15 +80,16 @@ const TimeHelper = require('./utils/TimeHelper');
 
 
     let totalGasUsed = instances.senderToken.gasUsed + instances.senderAgent.gasUsed +  instances.recipientToken.gasUsed +  instances.recipientAgent.gasUsed
-    console.log(`Sequence iteration ${i} finished in ${Math.floor(stopwatch.read(0) / 1000)} seconds. Gas used: ${totalGasUsed}`);
+    console.log(`Sequence iteration ${c} finished in ${Math.floor(stopwatch.read(0) / 1000)} seconds. Gas used: ${totalGasUsed}`);
     stopwatch.reset();
 
     logbook.settings = settings;
     logbook.instances = instances;
     fs.writeJSONSync('./utils/logbook.json', logbook);
+    fs.writeJSONSync('./utils/settings.json', settings);
 
     try{
-      await require('./utils/sendLogbookToDb')(logbook,i);
+      await require('./utils/sendLogbookToDb')(logbook,c,settings.truncateDb);
     }
     catch{
       console.log('sendLogbookToDb(logbook,i) failed.');
