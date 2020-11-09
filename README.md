@@ -13,3 +13,7 @@ run 'npm start' to start the application.
 
 Refer to /utils/settings to change settings as required.
 
+node.js
+npm.js
+mongodb
+truffle.js
