@@ -66,10 +66,13 @@ class Contract {
 			await signedTx.wait().then(async (completedTx) => {
 				completedTx.gasUsed.int = parseInt(completedTx.gasUsed._hex);
 				let gasUsed = completedTx.gasUsed.int;
+			//	console.log("GasUsed:-",gasUsed);
+				this.gasUsed = gasUsed;
 				completedTx.cumulativeGasUsed.int = parseInt(completedTx.cumulativeGasUsed._hex);
 				let cumulativeGasUsed = completedTx.cumulativeGasUsed.int;
 				delete completedTx.logsBloom;
 				logbook.completedTxs.push(completedTx);
+			//	console.log(completedTx.blockHash);
 				let cpu = await pidusage(process.pid);
 				logbook.summary.push({c, transactionHash: completedTx.transactionHash, method, gasUsed, cumulativeGasUsed, split: Math.floor(stopwatch.read(0) / 1000),memory:cpu.memory });
 				// let sysInfo = await si.cpu();
@@ -96,7 +99,6 @@ class Contract {
 			});
 		return this.result;
 	}
-
 	async writeToLogbook(logbook) {
 	}
 }

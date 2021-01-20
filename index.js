@@ -28,7 +28,6 @@ const delay = require('delay');
   //-----------------------------------------------------------------//
 
 
-
   for (const c of iCounter) {
     const logbook = new LogbookModel();
     logbook.c = c;
@@ -64,8 +63,6 @@ const delay = require('delay');
       await delay(120000);
     }
     
-
-
     console.log(`sequence iteration ${c}:`);
     // await instances.senderAgent.timer.init(settings.timeoutSeconds);
     stopwatch.start();
@@ -77,7 +74,6 @@ const delay = require('delay');
     logbook.postBalances.push(await instances.senderToken.balanceOfLog(settings.recipient));
     logbook.postBalances.push(await instances.recipientToken.balanceOfLog(settings.sender));
     logbook.postBalances.push(await instances.recipientToken.balanceOfLog(settings.recipient));
-
 
     let totalGasUsed = instances.senderToken.gasUsed + instances.senderAgent.gasUsed +  instances.recipientToken.gasUsed +  instances.recipientAgent.gasUsed
     console.log(`Sequence iteration ${c} finished in ${Math.floor(stopwatch.read(0) / 1000)} seconds. Gas used: ${totalGasUsed}`);
@@ -99,8 +95,6 @@ const delay = require('delay');
 })();
 
 
-
-
 async function deploy() {
   if(!settings.deploy) return false;
   console.log('deploy');
@@ -110,7 +104,6 @@ async function deploy() {
   settings.agent.addresses[settings.recipientNetwork] = await deployContract(settings.admin, agentArtifact, settings.recipientNetwork);
   return true;
 }
-
 
 
 async function deployContract(msgSender, artifact, network, args = []) {
@@ -126,7 +119,6 @@ async function deployContract(msgSender, artifact, network, args = []) {
   const result = await deployment.deployed();
   return result.address;
 }
-
 
 
 async function getEthersBalance(network, account) {

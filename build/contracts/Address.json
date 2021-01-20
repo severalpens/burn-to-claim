@@ -5692,7 +5692,7 @@
   },
   "networks": {},
   "schemaVersion": "3.2.0",
-  "updatedAt": "2020-11-09T06:22:16.383Z",
+  "updatedAt": "2021-01-19T01:28:14.451Z",
   "devdoc": {
     "details": "Collection of functions related to the address type",
     "methods": {}
