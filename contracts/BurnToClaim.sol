@@ -1,4 +1,5 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity 0.8.11;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
@@ -12,6 +13,7 @@ contract BurnToClaim {
         bytes32 hashlock,
         uint256 timelock
     );
+
     event entryTransactionEvent(bytes32 indexed transactionId);
     event reclaimTransactionEvent(bytes32 indexed transactionId);
 
@@ -31,22 +33,14 @@ contract BurnToClaim {
         address contractAddress;
         bool isExit;
     }
+    
     mapping(address => CrosschainAddress) crosschainAddress;
 
     event requireMockEvent(string  message);
     event revertMockEvent(string  message);
 
-    function requireMock(bool result, string memory message) public {
-        if(result == false){
-            emit requireMockEvent(message);
-        }
-    }
 
     function registerContract(address contractAddress) external {
-        requireMock(
-            contractAddress != address(0),
-            "contract address must not be zero address"
-        );
         crosschainAddress[contractAddress] = CrosschainAddress(
             contractAddress,
             true
@@ -60,15 +54,8 @@ contract BurnToClaim {
         address _tokenContract,
         uint256 _amount
     ) external returns (bytes32 transactionId) {
-        uint timeNow = now;
-        requireMock(_amount > 0, "token amount must be > 0");
-        requireMock(
-            ERC20(_tokenContract).allowance(msg.sender, address(this)) >=
-                _amount,
-            "token allowance must be >= amount"
-        );
-        
-        requireMock(_timelock > timeNow, "timelock time must be in the future");
+        uint timeNow = block.timestamp;
+        ERC20(_tokenContract).allowance(msg.sender, address(this));
 
         transactionId = sha256(
             abi.encodePacked(
@@ -109,7 +96,7 @@ contract BurnToClaim {
             _tokenContract,
             _amount,
             _hashlock,
-            now
+            block.timestamp
         );
     }
 
@@ -122,10 +109,6 @@ contract BurnToClaim {
         address _tokenContract, // base token contract
         uint256 _amount
     ) external {
-        requireMock(
-            crosschainAddress[_crosschainContractAddress].isExit,
-            "Add corssChain data contract address not exit"
-        );
         burnTokenData[_transactionId] = BurnTokenData(
             msg.sender,
             _burnAddress,
@@ -145,20 +128,6 @@ contract BurnToClaim {
         bytes32 _transactionId,
         bytes32 _preimage
     ) external returns (bool) {
-        requireMock(haveContract(_transactionId), "transactionId does not exist");
-        requireMock(
-            burnTokenData[_transactionId].hashlock ==
-                sha256(abi.encodePacked(_preimage)),
-            "hashlock hash does not match"
-        );
-        requireMock(
-            burnTokenData[_transactionId].withdrawn == false,
-            "withdrawable: already withdrawn"
-        );
-        requireMock(
-            burnTokenData[_transactionId].timelock > now,
-            "withdrawable: timelock time must be in the future"
-        );
 
         BurnTokenData storage c = burnTokenData[_transactionId];
         c.preimage = _preimage;
@@ -178,10 +147,6 @@ contract BurnToClaim {
         bytes32 _transactionId,
         bytes32 _preimage
     ) external {
-        requireMock(
-            crosschainAddress[_crosschainContractAddress].isExit,
-            "Update corssChain data contract address not exit"
-        );
         BurnTokenData storage c = burnTokenData[_transactionId];
         c.preimage = _preimage;
         c.withdrawn = true;
@@ -191,24 +156,6 @@ contract BurnToClaim {
         external
         returns (bool)
     {
-        requireMock(haveContract(_transactionId), "transactionId does not exist");
-        requireMock(
-            burnTokenData[_transactionId].sender == msg.sender,
-            "refundable: not sender"
-        );
-        requireMock(
-            burnTokenData[_transactionId].refunded == false,
-            "refundable: already refunded"
-        );
-        requireMock(
-            burnTokenData[_transactionId].withdrawn == false,
-            "refundable: already withdrawn"
-        );
-        requireMock(
-            burnTokenData[_transactionId].timelock <= now,
-            "refundable: timelock not yet passed"
-        );
-
         BurnTokenData storage c = burnTokenData[_transactionId];
         c.refunded = true;
         if (!ERC20(c.tokenContract).transfer(c.sender, c.amount))
@@ -221,23 +168,6 @@ contract BurnToClaim {
         external
         returns (bool)
     {
-        requireMock(haveContract(_transactionId), "transactionId does not exist");
-        requireMock(
-            burnTokenData[_transactionId].sender == msg.sender,
-            "refundable: not sender"
-        );
-        requireMock(
-            burnTokenData[_transactionId].refunded == false,
-            "refundable: already refunded"
-        );
-        requireMock(
-            burnTokenData[_transactionId].withdrawn == false,
-            "refundable: already withdrawn"
-        );
-        //   requireMock(
-        //     burnTokenData[_transactionId].timelock <= now,
-        //      "refundable: timelock not yet passed"
-        //);
 
         BurnTokenData storage c = burnTokenData[_transactionId];
         c.refunded = true;

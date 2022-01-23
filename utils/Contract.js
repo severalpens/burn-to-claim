@@ -4,7 +4,6 @@
  */
 const fs = require('fs-extra');
 const statman = require('statman');
-const pidusage = require('pidusage');
 const si = require('systeminformation');
 const ethers = require("ethers");
 const TimeHelper = require('./TimeHelper');
@@ -15,14 +14,10 @@ class Contract {
 		this.contractSettings = contractSettings;
 		this.address = contractSettings.addresses[network];
 		const infura = new ethers.providers.InfuraProvider(network, process.env.INFURA);
-		const ganache = new ethers.providers.JsonRpcProvider('http://127.0.0.1:7545');
 		this.provider = network == "ganache" ? ganache : infura;
 		this.wallet = new ethers.Wallet(msgSender.privateKey, this.provider);
 		this.ethersContract = new ethers.Contract(this.address, artifact.abi, this.wallet);
 		this.timer = new TimeHelper();
-		this.transactionId = '';
-		this.gasUsed = 0
-		this.result = {};
 		this.overrides = {
 			// The maximum units of gas for the transaction to use
 			gasLimit: 200000,
