@@ -1,38 +1,43 @@
-require('dotenv').config()
+require('dotenv').config();
+const fs = require('fs-extra');
 const ethers = require('ethers');
 const ethersWrapper = require('./utils/ethersWrapper');
 const crypto = require('./utils/cryptoWrapper');
 const tokenArtifact = require('./build/contracts/BasicToken.json');
 const agentArtifact = require('./build/contracts/BurnToClaim.json');
-const settings = require('./utils/settings.json');
 const TimeHelper = require('./utils/TimeHelper');
 const delay = require('delay');
-const senderToken = {}
-const recipientToken = {}
-const senderAgent = {}
-const recipientAgent = {}
 
 async function main() {
-
-  console.log('Deploy BasicToken on Rinkeby');
+  const settings =  fs.readJSONSync('./settings.json');
+  
+  console.log('Deploy contracts on Rinkeby');
   let provider = new ethers.providers.InfuraProvider('rinkeby', settings.infura);
   let wallet = new ethers.Wallet(settings.admin.privateKey, provider);
-  let factory = new ethers.ContractFactory(tokenArtifact.abi, tokenArtifact.bytecode, wallet);
-  let deployment = await factory.deploy(ethers.utils.parseEther("1000.0"));
-  let result = await deployment.deployed();
-  senderToken.address = result.address;
-  console.log(senderToken);
-  senderToken.contract = new ethers.Contract(senderToken.address, tokenArtifact.abi, wallet);
+  let tokenFactory = new ethers.ContractFactory(tokenArtifact.abi, tokenArtifact.bytecode, wallet);
+  let tokenDeploy = await tokenFactory.deploy(ethers.utils.parseEther("1000.0"));
+  let token = await tokenDeploy.deployed();
+  settings.sender.tokenAddress = token.address;
 
+  let agentFactory = new ethers.ContractFactory(agentArtifact.abi, agentArtifact.bytecode, wallet);
+  let agentDeploy = await agentFactory.deploy();
+  let agent = await agentDeploy.deployed();
+  settings.sender.tokenAddress = agent.address;
 
-//   console.log('Deploy BasicToken on Ropsten');
-//   provider = new ethers.providers.InfuraProvider('ropsten', settings.infura);
-//   wallet = new ethers.Wallet(settings.admin.privateKey, provider);
-//   factory = new ethers.ContractFactory(tokenArtifact.abi, tokenArtifact.bytecode, wallet);
-//   deployment = await factory.deploy(ethers.utils.parseEther("1000.0"));
-//   result = await deployment.deployed();
-//   recipientToken.address = result.address;
-//   recipientToken.contract = new ethers.Contract(recipientToken.address, tokenArtifact.abi, wallet);
+  console.log('Deploy contracts on Ropsten');
+  provider = new ethers.providers.InfuraProvider('ropsten', settings.infura);
+  wallet = new ethers.Wallet(settings.admin.privateKey, provider);
+  tokenFactory = new ethers.ContractFactory(tokenArtifact.abi, tokenArtifact.bytecode, wallet);
+  tokenDeploy = await tokenFactory.deploy(ethers.utils.parseEther("1000.0"));
+  token = await tokenDeploy.deployed();
+  settings.recipient.tokenAddress = token.address;
+
+  agentFactory = new ethers.ContractFactory(agentArtifact.abi, agentArtifact.bytecode, wallet);
+  agentDeploy = await agentFactory.deploy();
+  agent = await agentDeploy.deployed();
+  settings.recipient.tokenAddress = agent.address;
+  
+  fs.writeJSONSync('./settings.json',settings);
 
 
 //   console.log('Deploy BurnToClaim on Rinkeby');
