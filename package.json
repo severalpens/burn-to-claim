@@ -30,7 +30,7 @@
     "mocha": "^7.1.2",
     "moment": "^2.27.0",
     "mongodb": "^3.6.0",
-    "mongoose": "^5.9.28",
+    "mongoose": "^5.13.20",
     "morgan": "~1.9.1",
     "pidusage": "^2.0.21",
     "solc": "^0.6.0",
